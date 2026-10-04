@@ -117,7 +117,7 @@ const lightTheme: Theme = {
   autoAccept: 'rgb(135,0,255)', // Electric violet
   bashBorder: 'rgb(255,0,135)', // Vibrant pink
   claude: 'rgb(215,119,87)', // Claude orange
-  startupAccent: 'rgb(124,176,133)', // Free Code pastel green
+  startupAccent: 'rgb(215,119,87)', // Free Code pastel green :Default:rgb(124,176,133)
   claudeShimmer: 'rgb(245,149,117)', // Lighter claude orange for shimmer effect
   claudeBlue_FOR_SYSTEM_SPINNER: 'rgb(87,105,247)', // Medium blue for system spinner
   claudeBlueShimmer_FOR_SYSTEM_SPINNER: 'rgb(117,135,255)', // Lighter blue for system spinner shimmer
