@@ -45,7 +45,8 @@ check_os() {
   case "$(uname -s)" in
     Darwin) OS="macos" ;;
     Linux)  OS="linux" ;;
-    *)      fail "Unsupported OS: $(uname -s). macOS or Linux required." ;;
+    MINGW*|MSYS*|CYGWIN*) OS="windows" ;;
+    *)      fail "Unsupported OS: $(uname -s). macOS, Linux, or Windows (Git Bash) required." ;;
   esac
   ok "OS: $(uname -s) $(uname -m)"
 }
@@ -80,13 +81,17 @@ check_bun() {
 }
 
 install_bun() {
-  curl -fsSL https://bun.sh/install | bash
+  if [ "${OS:-}" = "windows" ]; then
+    powershell.exe -Command "irm bun.sh/install.ps1 | iex"
+  else
+    curl -fsSL https://bun.sh/install | bash
+  fi
   # Source the updated profile so bun is on PATH for this session
   export BUN_INSTALL="${BUN_INSTALL:-$HOME/.bun}"
   export PATH="$BUN_INSTALL/bin:$PATH"
   if ! command -v bun &>/dev/null; then
     fail "bun installation succeeded but binary not found on PATH.
-    Add this to your shell profile and restart:
+    Add this to your shell profile (~/.bashrc) and restart:
       export PATH=\"\$HOME/.bun/bin:\$PATH\""
   fi
   ok "bun: v$(bun --version) (just installed)"
@@ -130,13 +135,22 @@ link_binary() {
   local link_dir="$HOME/.local/bin"
   mkdir -p "$link_dir"
 
-  ln -sf "$INSTALL_DIR/cli-dev" "$link_dir/byv-code"
-  ok "Symlinked: $link_dir/byv-code"
+  local src_bin="$INSTALL_DIR/cli-dev"
+  if [ -f "$INSTALL_DIR/cli-dev.exe" ]; then
+    src_bin="$INSTALL_DIR/cli-dev.exe"
+  fi
+
+  if [ "${OS:-}" = "windows" ]; then
+    cp -f "$src_bin" "$link_dir/byv-code.exe" 2>/dev/null || ln -sf "$src_bin" "$link_dir/byv-code"
+  else
+    ln -sf "$src_bin" "$link_dir/byv-code"
+  fi
+  ok "Linked: $link_dir/byv-code"
 
   if ! echo "$PATH" | tr ':' '\n' | grep -qx "$link_dir"; then
     warn "$link_dir is not on your PATH"
     echo ""
-    printf "${YELLOW}  Add this to your shell profile (~/.bashrc, ~/.zshrc, etc.):${RESET}\n"
+    printf "${YELLOW}  Add this to your shell profile (~/.bashrc, ~/.bash_profile, etc.):${RESET}\n"
     printf "${BOLD}    export PATH=\"\$HOME/.local/bin:\$PATH\"${RESET}\n"
     echo ""
   fi
