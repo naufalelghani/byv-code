@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # byv-code installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/naufalelghani/byv-code/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/naufalelghani/free-code/main/install.sh | bash
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -25,15 +25,15 @@ header() {
   echo ""
   printf "${BOLD}${CYAN}"
   cat << 'ART'
-   ___                            _
-  / _|_ __ ___  ___        ___ __| | ___
- | |_| '__/ _ \/ _ \_____ / __/ _` |/ _ \
- |  _| | |  __/  __/_____| (_| (_| |  __/
- |_| |_|  \___|\___|      \___\__,_|\___|
-
+ _                                       _       
+| |                                     | |      
+| |__  _   _  __   _____  ___ ___   __| | ___  
+| '_ \| | | | \ \ / /_____/ __/ _ \ / _` |/ _ \ 
+|_.__/ \__, |  \ V /_____| (_| (_) | (_| |  __/ 
+       |___/    \_/       \___\___/ \__,_|\___| 
 ART
   printf "${RESET}"
-  printf "${DIM}  The free build of Claude Code${RESET}\n"
+  printf "${DIM} The free build of Claude Code${RESET}\n"
   echo ""
 }
 
