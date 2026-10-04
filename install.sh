@@ -12,7 +12,7 @@ BOLD='\033[1m'
 DIM='\033[2m'
 RESET='\033[0m'
 
-REPO="https://github.com/naufalelghani/byv-code.git"
+REPO="https://github.com/naufalelghani/free-code.git"
 INSTALL_DIR="$HOME/byv-code"
 BUN_MIN_VERSION="1.3.11"
 
