@@ -11,6 +11,7 @@ import {
   COST_TIER_3_15,
   COST_HAIKU_35,
   COST_HAIKU_45,
+  COST_TIER_10_50,
   formatModelPricing,
 } from '../modelCost.js'
 import { getSettings_DEPRECATED } from '../settings/settings.js'
@@ -23,6 +24,8 @@ import {
   getDefaultSonnetModel,
   getDefaultOpusModel,
   getDefaultHaikuModel,
+  getDefaultFableModel,
+  getDefaultMythosModel,
   getDefaultMainLoopModelSetting,
   getMarketingNameForModel,
   getUserSpecifiedModelSetting,
@@ -209,6 +212,31 @@ function getHaikuOption(): ModelOption {
     : getHaiku35Option()
 }
 
+// Fable 5 and Mythos 5 are Claude 5 class models (above Opus tier).
+// Added for external builds where env overrides allow custom IDs.
+function getFable5Option(fastMode = false): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
+  const model = getDefaultFableModel()
+  const pricing = formatModelPricing(COST_TIER_10_50)
+  return {
+    value: 'fable',
+    label: 'Fable 5',
+    description: `Fable 5 · Claude 5 class${is3P ? '' : ` · ${pricing}`}`,
+    descriptionForModel: 'Fable 5 - Claude 5 class model with 1M context',
+  }
+}
+
+function getMythos5Option(fastMode = false): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
+  const pricing = formatModelPricing(COST_TIER_10_50)
+  return {
+    value: 'mythos',
+    label: 'Mythos 5',
+    description: `Mythos 5 · Claude 5 class (no safety classifiers)${is3P ? '' : ` · ${pricing}`}`,
+    descriptionForModel: 'Mythos 5 - Claude 5 class model without safety classifiers',
+  }
+}
+
 // OpenAI Codex model options
 function getGpt54Option(): ModelOption {
   return {
@@ -234,6 +262,70 @@ function getGpt54MiniOption(): ModelOption {
     label: 'GPT-5.4 Mini',
     description: 'GPT-5.4 Mini · Fast and efficient for simple tasks',
     descriptionForModel: 'GPT-5.4 Mini - fast and efficient for simple coding tasks',
+  }
+}
+
+// Legacy model options for comprehensiveness
+function getSonnet37Option(): ModelOption {
+  return {
+    value: getModelStrings().sonnet37,
+    label: 'Sonnet 3.7',
+    description: 'Sonnet 3.7 · Legacy',
+    descriptionForModel: 'Sonnet 3.7 - legacy version',
+  }
+}
+
+function getSonnet40Option(): ModelOption {
+  return {
+    value: getModelStrings().sonnet40,
+    label: 'Sonnet 4.0',
+    description: 'Sonnet 4.0 · Legacy',
+    descriptionForModel: 'Sonnet 4.0 - legacy version',
+  }
+}
+
+function getSonnet45Option(): ModelOption {
+  return {
+    value: getModelStrings().sonnet45,
+    label: 'Sonnet 4.5',
+    description: 'Sonnet 4.5 · Legacy',
+    descriptionForModel: 'Sonnet 4.5 - legacy version',
+  }
+}
+
+function getOpus40Option(): ModelOption {
+  return {
+    value: getModelStrings().opus40,
+    label: 'Opus 4.0',
+    description: 'Opus 4.0 · Legacy',
+    descriptionForModel: 'Opus 4.0 - legacy version',
+  }
+}
+
+function getOpus41OptionLegacy(): ModelOption {
+  return {
+    value: getModelStrings().opus41,
+    label: 'Opus 4.1',
+    description: 'Opus 4.1 · Legacy',
+    descriptionForModel: 'Opus 4.1 - legacy version',
+  }
+}
+
+function getOpus45Option(): ModelOption {
+  return {
+    value: getModelStrings().opus45,
+    label: 'Opus 4.5',
+    description: 'Opus 4.5 · Legacy',
+    descriptionForModel: 'Opus 4.5 - legacy version',
+  }
+}
+
+function getHaiku35OptionLegacy(): ModelOption {
+  return {
+    value: getModelStrings().haiku35,
+    label: 'Haiku 3.5',
+    description: 'Haiku 3.5 · Legacy',
+    descriptionForModel: 'Haiku 3.5 - legacy version',
   }
 }
 
@@ -340,6 +432,13 @@ function getModelOptionsBase(fastMode = false): ModelOption[] {
       }
 
       premiumOptions.push(MaxHaiku45Option)
+      // Add legacy models for Max/Team Premium users
+      premiumOptions.push(getSonnet37Option())
+      premiumOptions.push(getSonnet40Option())
+      premiumOptions.push(getSonnet45Option())
+      premiumOptions.push(getOpus40Option())
+      premiumOptions.push(getOpus41OptionLegacy())
+      premiumOptions.push(getOpus45Option())
       return premiumOptions
     }
 
@@ -359,6 +458,13 @@ function getModelOptionsBase(fastMode = false): ModelOption[] {
     }
 
     standardOptions.push(MaxHaiku45Option)
+    // Add legacy models for Pro/Team Standard/Enterprise users
+    standardOptions.push(getSonnet37Option())
+    standardOptions.push(getSonnet40Option())
+    standardOptions.push(getSonnet45Option())
+    standardOptions.push(getOpus40Option())
+    standardOptions.push(getOpus41OptionLegacy())
+    standardOptions.push(getOpus45Option())
     return standardOptions
   }
 
@@ -377,6 +483,18 @@ function getModelOptionsBase(fastMode = false): ModelOption[] {
       }
     }
     payg1POptions.push(getHaiku45Option())
+    payg1POptions.push(getSonnet37Option())
+    payg1POptions.push(getSonnet40Option())
+    payg1POptions.push(getSonnet45Option())
+    payg1POptions.push(getOpus40Option())
+    payg1POptions.push(getOpus41OptionLegacy())
+    payg1POptions.push(getOpus45Option())
+    payg1POptions.push(getHaiku35OptionLegacy())
+    payg1POptions.push(getFable5Option(fastMode))
+    payg1POptions.push(getMythos5Option(fastMode))
+    payg1POptions.push(getGpt54Option())
+    payg1POptions.push(getGpt53CodexOption())
+    payg1POptions.push(getGpt54MiniOption())
     return payg1POptions
   }
 
@@ -411,6 +529,17 @@ function getModelOptionsBase(fastMode = false): ModelOption[] {
   } else {
     payg3pOptions.push(getHaikuOption())
   }
+  payg3pOptions.push(getSonnet37Option())
+  payg3pOptions.push(getSonnet40Option())
+  payg3pOptions.push(getSonnet45Option())
+  payg3pOptions.push(getOpus40Option())
+  payg3pOptions.push(getOpus45Option())
+  payg3pOptions.push(getHaiku35OptionLegacy())
+  payg3pOptions.push(getFable5Option(fastMode))
+  payg3pOptions.push(getMythos5Option(fastMode))
+  payg3pOptions.push(getGpt54Option())
+  payg3pOptions.push(getGpt53CodexOption())
+  payg3pOptions.push(getGpt54MiniOption())
   return payg3pOptions
 }
 
@@ -457,6 +586,16 @@ function getModelFamilyInfo(
     if (currentName) {
       return { alias: 'Haiku', currentVersionName: currentName }
     }
+  }
+
+  // Fable family (Claude 5 class, above Opus tier)
+  if (canonical.includes('claude-fable-5')) {
+    return { alias: 'Fable', currentVersionName: 'Fable 5' }
+  }
+
+  // Mythos family (Claude 5 class, above Opus tier)
+  if (canonical.includes('claude-mythos-5')) {
+    return { alias: 'Mythos', currentVersionName: 'Mythos 5' }
   }
 
   return null
