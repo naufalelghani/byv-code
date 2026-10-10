@@ -9,9 +9,11 @@ import {
 import { getModelStrings } from './modelStrings.js'
 import {
   COST_TIER_3_15,
+  COST_TIER_5_25,
+  COST_TIER_10_50,
+  COST_TIER_15_75,
   COST_HAIKU_35,
   COST_HAIKU_45,
-  COST_TIER_10_50,
   formatModelPricing,
 } from '../modelCost.js'
 import { getSettings_DEPRECATED } from '../settings/settings.js'
@@ -267,64 +269,71 @@ function getGpt54MiniOption(): ModelOption {
 
 // Legacy model options for comprehensiveness
 function getSonnet37Option(): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
   return {
     value: getModelStrings().sonnet37,
     label: 'Sonnet 3.7',
-    description: 'Sonnet 3.7 · Legacy',
+    description: `Sonnet 3.7 · Legacy${is3P ? '' : ` · ${formatModelPricing(COST_TIER_3_15)}`}`,
     descriptionForModel: 'Sonnet 3.7 - legacy version',
   }
 }
 
 function getSonnet40Option(): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
   return {
     value: getModelStrings().sonnet40,
     label: 'Sonnet 4.0',
-    description: 'Sonnet 4.0 · Legacy',
+    description: `Sonnet 4.0 · Legacy${is3P ? '' : ` · ${formatModelPricing(COST_TIER_3_15)}`}`,
     descriptionForModel: 'Sonnet 4.0 - legacy version',
   }
 }
 
 function getSonnet45Option(): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
   return {
     value: getModelStrings().sonnet45,
     label: 'Sonnet 4.5',
-    description: 'Sonnet 4.5 · Legacy',
+    description: `Sonnet 4.5 · Legacy${is3P ? '' : ` · ${formatModelPricing(COST_TIER_3_15)}`}`,
     descriptionForModel: 'Sonnet 4.5 - legacy version',
   }
 }
 
 function getOpus40Option(): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
   return {
     value: getModelStrings().opus40,
     label: 'Opus 4.0',
-    description: 'Opus 4.0 · Legacy',
+    description: `Opus 4.0 · Legacy${is3P ? '' : ` · ${formatModelPricing(COST_TIER_15_75)}`}`,
     descriptionForModel: 'Opus 4.0 - legacy version',
   }
 }
 
 function getOpus41OptionLegacy(): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
   return {
     value: getModelStrings().opus41,
     label: 'Opus 4.1',
-    description: 'Opus 4.1 · Legacy',
+    description: `Opus 4.1 · Legacy${is3P ? '' : ` · ${formatModelPricing(COST_TIER_15_75)}`}`,
     descriptionForModel: 'Opus 4.1 - legacy version',
   }
 }
 
 function getOpus45Option(): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
   return {
     value: getModelStrings().opus45,
     label: 'Opus 4.5',
-    description: 'Opus 4.5 · Legacy',
+    description: `Opus 4.5 · Legacy${is3P ? '' : ` · ${formatModelPricing(COST_TIER_5_25)}`}`,
     descriptionForModel: 'Opus 4.5 - legacy version',
   }
 }
 
 function getHaiku35OptionLegacy(): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
   return {
     value: getModelStrings().haiku35,
     label: 'Haiku 3.5',
-    description: 'Haiku 3.5 · Legacy',
+    description: `Haiku 3.5 · Legacy${is3P ? '' : ` · ${formatModelPricing(COST_HAIKU_35)}`}`,
     descriptionForModel: 'Haiku 3.5 - legacy version',
   }
 }
