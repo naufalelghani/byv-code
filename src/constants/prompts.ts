@@ -60,6 +60,8 @@ import { logForDebugging } from '../utils/debug.js'
 import { loadMemoryPrompt } from '../memdir/memdir.js'
 import { isUndercover } from '../utils/undercover.js'
 import { isMcpInstructionsDeltaEnabled } from '../utils/mcpInstructionsDelta.js'
+import { readFileSync } from '../utils/fileRead.js'
+import { resolve } from 'path'
 
 // Dead code elimination: conditional imports for feature-gated modules
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -115,13 +117,15 @@ export const SYSTEM_PROMPT_DYNAMIC_BOUNDARY =
   '__SYSTEM_PROMPT_DYNAMIC_BOUNDARY__'
 
 // @[MODEL LAUNCH]: Update the latest frontier model.
-const FRONTIER_MODEL_NAME = 'Claude Opus 4.6'
+const FRONTIER_MODEL_NAME = 'Claude Fable 5'
 
 // @[MODEL LAUNCH]: Update the model family IDs below to the latest in each tier.
 const CLAUDE_4_5_OR_4_6_MODEL_IDS = {
   opus: 'claude-opus-4-6',
   sonnet: 'claude-sonnet-4-6',
   haiku: 'claude-haiku-4-5-20251001',
+  fable: 'claude-fable-5',
+  mythos: 'claude-mythos-5',
 }
 
 function getHooksSection(): string {
@@ -453,6 +457,11 @@ export async function getSystemPrompt(
     ]
   }
 
+  const customPrompt = getCustomSystemPrompt(model)
+  if (customPrompt !== null) {
+    return [customPrompt]
+  }
+
   const cwd = getCwd()
   const [skillToolCommands, outputStyleConfig, envInfo] = await Promise.all([
     getSkillToolCommands(cwd),
@@ -558,6 +567,7 @@ ${CYBER_RISK_INSTRUCTION}`,
     await resolveSystemPromptSections(dynamicSections)
 
   return [
+    ...(customPrompt !== null ? [customPrompt] : []),
     // --- Static content (cacheable) ---
     getSimpleIntroSection(outputStyleConfig),
     getSimpleSystemSection(),
@@ -693,7 +703,7 @@ export async function computeSimpleEnvInfo(
     knowledgeCutoffMessage,
     process.env.USER_TYPE === 'ant' && isUndercover()
       ? null
-      : `The most recent Claude model family is Claude 4.5/4.6. Model IDs — Opus 4.6: '${CLAUDE_4_5_OR_4_6_MODEL_IDS.opus}', Sonnet 4.6: '${CLAUDE_4_5_OR_4_6_MODEL_IDS.sonnet}', Haiku 4.5: '${CLAUDE_4_5_OR_4_6_MODEL_IDS.haiku}'. When building AI applications, default to the latest and most capable Claude models.`,
+      : `The most recent Claude model family is Claude 5.x (Fable 5, Mythos 5) and Claude 4.6. Model IDs — Fable 5: '${CLAUDE_4_5_OR_4_6_MODEL_IDS.fable}', Mythos 5: '${CLAUDE_4_5_OR_4_6_MODEL_IDS.mythos}', Opus 4.6: '${CLAUDE_4_5_OR_4_6_MODEL_IDS.opus}', Sonnet 4.6: '${CLAUDE_4_5_OR_4_6_MODEL_IDS.sonnet}', Haiku 4.5: '${CLAUDE_4_5_OR_4_6_MODEL_IDS.haiku}'. When building AI applications, default to the latest and most capable Claude models.`,
     process.env.USER_TYPE === 'ant' && isUndercover()
       ? null
       : `Claude Code is available as a CLI in the terminal, desktop app (Mac/Windows), web app (claude.ai/code), and IDE extensions (VS Code, JetBrains).`,
@@ -712,6 +722,12 @@ export async function computeSimpleEnvInfo(
 // @[MODEL LAUNCH]: Add a knowledge cutoff date for the new model.
 function getKnowledgeCutoff(modelId: string): string | null {
   const canonical = getCanonicalName(modelId)
+  if (canonical.includes('claude-fable-5')) {
+    return 'July 2026'
+  }
+  if (canonical.includes('claude-mythos-5')) {
+    return 'July 2026'
+  }
   if (canonical.includes('claude-sonnet-4-6')) {
     return 'August 2025'
   } else if (canonical.includes('claude-opus-4-6')) {
@@ -727,6 +743,37 @@ function getKnowledgeCutoff(modelId: string): string | null {
     return 'January 2025'
   }
   return null
+}
+
+//@[CUSTOM_SYSTEM_PROMPT] Map canonical model names to custom prompt files in system/.
+const CUSTOM_PROMPT_SUFFIX_MAP: Record<string, string> = {
+  'claude-fable-5': 'claude-fable-5.1',
+  'claude-mythos-5': 'claude-mythos-5.1',
+  'claude-opus-4-6': 'claude-opus-5.5',
+  'claude-sonnet-4-6': 'claude-sonnet-5.5',
+  'claude-haiku-4': 'claude-haiku-4.5',
+  // Legacy model mappings - ensure each generation has appropriate system prompt
+  'claude-sonnet-3-5': 'claude-sonnet-3.5',
+  'claude-sonnet-3-7': 'claude-sonnet-3.7',
+  'claude-sonnet-4': 'claude-sonnet-4',
+  'claude-sonnet-4-5': 'claude-sonnet-4.5',
+  'claude-opus-4': 'claude-opus-4',
+  'claude-opus-4-1': 'claude-opus-4.1',
+  'claude-opus-4-5': 'claude-opus-4.5',
+  'claude-haiku-3-5': 'claude-haiku-3.5',
+}
+
+function getCustomSystemPrompt(modelId: string): string | null {
+  const canonical = getCanonicalName(modelId)
+  const suffix = CUSTOM_PROMPT_SUFFIX_MAP[canonical]
+  if (!suffix) return null
+  const filePath = resolve(getCwd(), 'system', `${suffix}.txt`)
+  try {
+    const content = readFileSync(filePath).trim()
+    return content || null
+  } catch {
+    return null
+  }
 }
 
 function getShellInfoLine(): string {
