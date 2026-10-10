@@ -11,6 +11,9 @@ import { getSSLErrorHint } from '../services/api/errorUtils.js';
 import { sendNotification } from '../services/notifier.js';
 import { runCodexOAuthFlow } from '../services/oauth/codex-client.js';
 import { OAuthService } from '../services/oauth/index.js';
+import { buildGitHubAuthUrl, githubOAuthExchangeCode } from '../services/oauth/github-client.js';
+import crypto from 'crypto';
+import { startGitHubOAuthFlow } from '../services/oauth/github-flow.js';
 import { getOauthAccountInfo, saveCodexOAuthTokens, validateForceLoginOrg } from '../utils/auth.js';
 import { logError } from '../utils/log.js';
 import { getSettings_DEPRECATED } from '../utils/settings/settings.js';
@@ -22,7 +25,7 @@ type Props = {
   onDone(): void;
   startingMessage?: string;
   mode?: 'login' | 'setup-token';
-  forceLoginMethod?: 'claudeai' | 'console';
+  forceLoginMethod?: 'claudeai' | 'console' | 'github';
 };
 type OAuthStatus = {
   state: 'idle';
@@ -286,6 +289,46 @@ export function ConsoleOAuthFlow({
     }
   }, [setShowPastePrompt, terminal]);
 
+  // GitHub Organization OAuth flow for Internal team members
+  const startGitHubOAuth = useCallback(async () => {
+    try {
+      logEvent('tengu_oauth_github_flow_start', {});
+      // Generate PKCE code verifier and state for GitHub OAuth
+      const codeVerifier = crypto.randomBytes(32).toString('base64url');
+      const state = crypto.randomBytes(16).toString('base64url');
+
+      // Start the GitHub OAuth flow (this will auto-open browser)
+      await startGitHubOAuthFlow(
+        (status) => setOAuthStatus(status),
+        () => {
+          // onDone callback - success path
+          void sendNotification({
+            message: 'GitHub login successful',
+            notificationType: 'auth_success'
+          }, terminal);
+          onDone();
+        },
+        state,
+        codeVerifier,
+      );
+    } catch (err) {
+      const msg = (err as Error).message;
+      logEvent('tengu_oauth_github_error', {
+        error: msg as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
+      });
+      setOAuthStatus({ state: 'error', message: msg, toRetry: { state: 'idle' } });
+    }
+  }, [onDone, terminal]);
+
+  // Handler for GitHub login selection from the login method dropdown
+  const handleGitHubLogin = useCallback(() => {
+    logEvent('tengu_oauth_github_selected', {});
+    setLoginWithCodex(false);
+    setLoginWithClaudeAi(false);
+    // Trigger GitHub OAuth flow immediately (no "ready_to_start" step needed)
+    void startGitHubOAuth();
+  }, [startGitHubOAuth]);
+
   const pendingOAuthStartRef = useRef(false);
   useEffect(() => {
     if (oauthStatus.state === 'ready_to_start' && !pendingOAuthStartRef.current) {
@@ -357,7 +400,7 @@ export function ConsoleOAuthFlow({
             </Box>
           </Box>}
       <Box paddingLeft={1} flexDirection="column" gap={1}>
-        <OAuthStatusMessage oauthStatus={oauthStatus} mode={mode} startingMessage={startingMessage} forcedMethodMessage={forcedMethodMessage} showPastePrompt={showPastePrompt} pastedCode={pastedCode} setPastedCode={setPastedCode} cursorOffset={cursorOffset} setCursorOffset={setCursorOffset} textInputColumns={textInputColumns} handleSubmitCode={handleSubmitCode} setOAuthStatus={setOAuthStatus} setLoginWithClaudeAi={setLoginWithClaudeAi} setLoginWithCodex={setLoginWithCodex} />
+        <OAuthStatusMessage oauthStatus={oauthStatus} mode={mode} startingMessage={startingMessage} forcedMethodMessage={forcedMethodMessage} showPastePrompt={showPastePrompt} pastedCode={pastedCode} setPastedCode={setPastedCode} cursorOffset={cursorOffset} setCursorOffset={setCursorOffset} textInputColumns={textInputColumns} handleSubmitCode={handleSubmitCode} setOAuthStatus={setOAuthStatus} setLoginWithClaudeAi={setLoginWithClaudeAi} setLoginWithCodex={setLoginWithCodex} startGitHubOAuth={startGitHubOAuth} />
       </Box>
     </Box>;
 }
@@ -376,6 +419,7 @@ type OAuthStatusMessageProps = {
   setOAuthStatus: (status: OAuthStatus) => void;
   setLoginWithClaudeAi: (value: boolean) => void;
   setLoginWithCodex: (value: boolean) => void;
+  startGitHubOAuth: () => Promise<void>;
 };
 function OAuthStatusMessage(t0) {
   const $ = _c(52);
@@ -393,7 +437,8 @@ function OAuthStatusMessage(t0) {
     handleSubmitCode,
     setOAuthStatus,
     setLoginWithClaudeAi,
-    setLoginWithCodex
+    setLoginWithCodex,
+    startGitHubOAuth
   } = t0;
   switch (oauthStatus.state) {
     case "idle":
@@ -437,6 +482,9 @@ function OAuthStatusMessage(t0) {
         let t6;
         if ($[5] === Symbol.for("react.memo_cache_sentinel")) {
           t6 = [t4, t5, {
+            label: <Text>Internal team ·{" "}<Text dimColor={true}>Login via GitHub Organization</Text>{"\n"}</Text>,
+            value: "github"
+          }, {
             label: <Text>3rd-party platform ·{" "}<Text dimColor={true}>Amazon Bedrock, Microsoft Foundry, or Vertex AI</Text>{"\n"}</Text>,
             value: "platform"
           }, {
@@ -448,7 +496,7 @@ function OAuthStatusMessage(t0) {
           t6 = $[5];
         }
         let t7;
-        if ($[6] !== setLoginWithClaudeAi || $[7] !== setOAuthStatus || $[8] !== setLoginWithCodex) {
+        if ($[6] !== setLoginWithClaudeAi || $[7] !== setOAuthStatus || $[8] !== setLoginWithCodex || $[9] !== startGitHubOAuth) {
           t7 = <Box><Select options={t6} onChange={value_0 => {
               if (value_0 === "platform") {
                 logEvent("tengu_oauth_platform_selected", {});
@@ -460,6 +508,12 @@ function OAuthStatusMessage(t0) {
                 setLoginWithCodex(true);
                 setLoginWithClaudeAi(false);
                 setOAuthStatus({ state: "ready_to_start" });
+              } else if (value_0 === "github") {
+                logEvent("tengu_oauth_github_selected", {});
+                setLoginWithCodex(false);
+                setLoginWithClaudeAi(false);
+                // Start GitHub OAuth flow directly (auto-opens browser)
+                void startGitHubOAuth();
               } else {
                 setLoginWithCodex(false);
                 setOAuthStatus({
@@ -477,18 +531,19 @@ function OAuthStatusMessage(t0) {
           $[6] = setLoginWithClaudeAi;
           $[7] = setOAuthStatus;
           $[8] = setLoginWithCodex;
-          $[9] = t7;
+          $[9] = startGitHubOAuth;
+          $[10] = t7;
         } else {
-          t7 = $[9];
+          t7 = $[10];
         }
         let t8;
-        if ($[10] !== t2 || $[11] !== t7) {
+        if ($[11] !== t2 || $[12] !== t7) {
           t8 = <Box flexDirection="column" gap={1} marginTop={1}>{t2}{t3}{t7}</Box>;
-          $[10] = t2;
-          $[11] = t7;
-          $[12] = t8;
+          $[11] = t2;
+          $[12] = t7;
+          $[13] = t8;
         } else {
-          t8 = $[12];
+          t8 = $[13];
         }
         return t8;
       }
