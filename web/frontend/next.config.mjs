@@ -1,6 +1,10 @@
-const nextConfig = {
+import type { NextConfig } from 'next'
+
+/** @type {import('next').NextConfig} */
+const nextConfig: NextConfig = {
   reactStrictMode: true,
-  // Proxy API requests to backend (port 5000) during development
+  // TypeScript path aliases — @/* maps to ./app/*
+  // tsconfig.json handles this for types; Next.js handles at runtime
   async rewrites() {
     if (process.env.NODE_ENV === 'development') {
       return [
