@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import type { Message } from '@/app/page'
 import { ThinkingIndicator } from '@/app/components/ThinkingIndicator'
+import { WebSearchToggle } from '@/app/search/WebSearchToggle'
 
 type ChatProps = {
   messages: Message[]
