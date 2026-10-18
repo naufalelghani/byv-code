@@ -1,10 +1,9 @@
 // biome-ignore-all assist/source/organizeImports: ANT-ONLY import markers must not be reordered
 import { getInitialMainLoopModel } from '../../bootstrap/state.js'
 import {
-  isClaudeAISubscriber,
   isCodexSubscriber,
-  isMaxSubscriber,
-  isTeamPremiumSubscriber,
+  isInternalSubscriber,
+  isClaudeAISubscriber,
 } from '../auth.js'
 import { getModelStrings } from './modelStrings.js'
 import {
@@ -14,8 +13,14 @@ import {
   COST_TIER_15_75,
   COST_HAIKU_35,
   COST_HAIKU_45,
+  COST_HAIKU_55,
+  COST_OPUS_55,
+  COST_SONNET_5,
+  COST_SONNET_55,
+  COST_FABLE_51,
   formatModelPricing,
 } from '../modelCost.js'
+import type { ModelKey } from './configs.js'
 import { getSettings_DEPRECATED } from '../settings/settings.js'
 import { checkOpus1mAccess, checkSonnet1mAccess } from './check1mAccess.js'
 import { getAPIProvider } from './providers.js'
@@ -38,6 +43,7 @@ import {
 } from './model.js'
 import { has1mContext } from '../context.js'
 import { getGlobalConfig } from '../config.js'
+import { getAntModels } from './antModels.js'
 
 // @[MODEL LAUNCH]: Update all the available and default model option strings below.
 
@@ -127,12 +133,13 @@ function getCustomOpusOption(): ModelOption | undefined {
   }
 }
 
-function getOpus41Option(): ModelOption {
+// 'opus' resolves to the current default Opus (5.5), so the label must match.
+function getOpus55Option(): ModelOption {
   return {
     value: 'opus',
-    label: 'Opus 4.1',
-    description: `Opus 4.1 · Legacy`,
-    descriptionForModel: 'Opus 4.1 - legacy version',
+    label: 'Opus',
+    description: `Opus 5.5 · Most capable for complex work`,
+    descriptionForModel: 'Opus 5.5 - most capable for complex work',
   }
 }
 
@@ -206,9 +213,23 @@ function getHaiku35Option(): ModelOption {
   }
 }
 
+function getHaiku55Option(): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
+  return {
+    value: 'haiku',
+    label: 'Haiku',
+    description: `Haiku 5.5 · Fastest for quick answers${is3P ? '' : ` · ${formatModelPricing(COST_HAIKU_55)} (up to 100K tokens)`}`,
+    descriptionForModel:
+      'Haiku 5.5 - fastest for quick answers. Lower cost but less capable than Sonnet 5.5.',
+  }
+}
+
 function getHaikuOption(): ModelOption {
-  // Return correct Haiku option based on provider
+  // Return the Haiku option matching the default Haiku model for this provider
   const haikuModel = getDefaultHaikuModel()
+  if (haikuModel === getModelStrings().haiku55) {
+    return getHaiku55Option()
+  }
   return haikuModel === getModelStrings().haiku45
     ? getHaiku45Option()
     : getHaiku35Option()
@@ -396,9 +417,61 @@ function getOpusPlanOption(): ModelOption {
   }
 }
 
-// @[MODEL LAUNCH]: Update the model picker lists below to include/reorder options for the new model.
-// Each user tier (ant, Max/Team Premium, Pro/Team Standard/Enterprise, PAYG 1P, PAYG 3P) has its own list.
+/**
+ * Generic model option builder — creates a ModelOption for any Claude model key.
+ * Used by internal subscriber catalog to display all available models.
+ */
+function getClaudeModelOption(
+  key: ModelKey,
+  label: string,
+  description: string,
+  pricing?: string,
+): ModelOption {
+  const is3P = getAPIProvider() !== 'firstParty'
+  const value = isInternalSubscriber() ? key : getModelStrings()[key]
+  return {
+    value,
+    label,
+    description: `${description}${is3P ? '' : pricing ? ` · ${pricing}` : ''}`,
+    descriptionForModel: description,
+  }
+}
+
+function getAllPlanClaudeModelOptions(): ModelOption[] {
+  return [
+    getClaudeModelOption('fable51', 'Fable 5.1', 'Fable 5.1 - Claude 5 class model (enhanced)', formatModelPricing(COST_FABLE_51)),
+    getClaudeModelOption('opus55', 'Opus 5.5', 'Opus 5.5 - newest generation', formatModelPricing(COST_OPUS_55)),
+    getClaudeModelOption('sonnet55', 'Sonnet 5.5', 'Sonnet 5.5 - newest generation', formatModelPricing(COST_SONNET_55)),
+    getClaudeModelOption('haiku55', 'Haiku 5.5', 'Haiku 5.5 - newest generation (tiered)', formatModelPricing(COST_HAIKU_55)),
+    getClaudeModelOption('fable5', 'Fable 5', 'Fable 5 - Claude 5 class model', formatModelPricing(COST_TIER_10_50)),
+    getClaudeModelOption('opus5', 'Opus 5', 'Opus 5 - legacy version', formatModelPricing(COST_TIER_5_25)),
+    getClaudeModelOption('opus48', 'Opus 4.8', 'Opus 4.8 - legacy version', formatModelPricing(COST_TIER_5_25)),
+    getClaudeModelOption('opus47', 'Opus 4.7', 'Opus 4.7 - legacy version', formatModelPricing(COST_TIER_5_25)),
+    getClaudeModelOption('opus46', 'Opus 4.6', 'Opus 4.6 - legacy version', formatModelPricing(COST_TIER_5_25)),
+    getClaudeModelOption('opus3', 'Opus 3', 'Opus 3 - legacy version', formatModelPricing(COST_TIER_15_75)),
+    getClaudeModelOption('sonnet5', 'Sonnet 5', 'Sonnet 5 - legacy version', formatModelPricing(COST_SONNET_5)),
+    getClaudeModelOption('sonnet46', 'Sonnet 4.6', 'Sonnet 4.6 - legacy version', formatModelPricing(COST_TIER_3_15)),
+    getClaudeModelOption('haiku45', 'Haiku 4.5', 'Haiku 4.5 - legacy version', formatModelPricing(COST_HAIKU_45)),
+  ]
+}
+
+function getInternalClaudeModelOptions(): ModelOption[] {
+  return [
+    getClaudeModelOption('mythos5', 'Mythos 5', 'Mythos 5 - Claude 5 class (no safety classifiers)', formatModelPricing(COST_TIER_10_50)),
+    getClaudeModelOption('mythos51', 'Mythos 5.1', 'Mythos 5.1 - Claude 5 class (enhanced, no safety)', formatModelPricing(COST_TIER_10_50)),
+    ...getAllPlanClaudeModelOptions(),
+  ]
+}
+
 function getModelOptionsBase(fastMode = false): ModelOption[] {
+  // Internal GitHub org subscribers — full Claude model catalog (sync with system/modelid.txt)
+  // Only Claude family models displayed — no GPT/Codex models
+  if (isInternalSubscriber()) {
+    // Models are ordered by family and ascending version; every value is
+    // versioned so prompt selection cannot fall back to a moving alias.
+    return [getDefaultOptionForUser(fastMode), ...getInternalClaudeModelOptions()]
+  }
+
   if (process.env.USER_TYPE === 'ant') {
     // Build options from antModels config
     const antModelOptions: ModelOption[] = getAntModels().map(m => ({
@@ -428,53 +501,8 @@ function getModelOptionsBase(fastMode = false): ModelOption[] {
   }
 
   if (isClaudeAISubscriber()) {
-    if (isMaxSubscriber() || isTeamPremiumSubscriber()) {
-      // Max and Team Premium users: Opus is default, show Sonnet as alternative
-      const premiumOptions = [getDefaultOptionForUser(fastMode)]
-      if (!isOpus1mMergeEnabled() && checkOpus1mAccess()) {
-        premiumOptions.push(getMaxOpus46_1MOption(fastMode))
-      }
-
-      premiumOptions.push(MaxSonnet46Option)
-      if (checkSonnet1mAccess()) {
-        premiumOptions.push(getMaxSonnet46_1MOption())
-      }
-
-      premiumOptions.push(MaxHaiku45Option)
-      // Add legacy models for Max/Team Premium users
-      premiumOptions.push(getSonnet37Option())
-      premiumOptions.push(getSonnet40Option())
-      premiumOptions.push(getSonnet45Option())
-      premiumOptions.push(getOpus40Option())
-      premiumOptions.push(getOpus41OptionLegacy())
-      premiumOptions.push(getOpus45Option())
-      return premiumOptions
-    }
-
-    // Pro/Team Standard/Enterprise users: Sonnet is default, show Opus as alternative
-    const standardOptions = [getDefaultOptionForUser(fastMode)]
-    if (checkSonnet1mAccess()) {
-      standardOptions.push(getMaxSonnet46_1MOption())
-    }
-
-    if (isOpus1mMergeEnabled()) {
-      standardOptions.push(getMergedOpus1MOption(fastMode))
-    } else {
-      standardOptions.push(getMaxOpusOption(fastMode))
-      if (checkOpus1mAccess()) {
-        standardOptions.push(getMaxOpus46_1MOption(fastMode))
-      }
-    }
-
-    standardOptions.push(MaxHaiku45Option)
-    // Add legacy models for Pro/Team Standard/Enterprise users
-    standardOptions.push(getSonnet37Option())
-    standardOptions.push(getSonnet40Option())
-    standardOptions.push(getSonnet45Option())
-    standardOptions.push(getOpus40Option())
-    standardOptions.push(getOpus41OptionLegacy())
-    standardOptions.push(getOpus45Option())
-    return standardOptions
+    // Claude plan users receive the complete non-Mythos catalog.
+    return [getDefaultOptionForUser(fastMode), ...getAllPlanClaudeModelOptions()]
   }
 
   // PAYG 1P API: Default (Sonnet) + Sonnet 1M + Opus 4.6 + Opus 1M + Haiku
@@ -526,7 +554,7 @@ function getModelOptionsBase(fastMode = false): ModelOption[] {
     payg3pOptions.push(customOpus)
   } else {
     // Add Opus 4.1, Opus 4.6 and Opus 4.6 1M
-    payg3pOptions.push(getOpus41Option()) // This is the default opus
+    payg3pOptions.push(getOpus55Option()) // This is the default opus
     payg3pOptions.push(getOpus46Option(fastMode))
     if (checkOpus1mAccess()) {
       payg3pOptions.push(getOpus46_1MOption(fastMode))
@@ -544,8 +572,10 @@ function getModelOptionsBase(fastMode = false): ModelOption[] {
   payg3pOptions.push(getOpus40Option())
   payg3pOptions.push(getOpus45Option())
   payg3pOptions.push(getHaiku35OptionLegacy())
-  payg3pOptions.push(getFable5Option(fastMode))
-  payg3pOptions.push(getMythos5Option(fastMode))
+  payg3pOptions.push(getClaudeModelOption('haiku55', 'Haiku 5.5', 'Haiku 5.5 - fastest for quick answers'))
+  payg3pOptions.push(getClaudeModelOption('opus55', 'Opus 5.5', 'Opus 5.5 - most capable for complex work'))
+  payg3pOptions.push(getClaudeModelOption('sonnet55', 'Sonnet 5.5', 'Sonnet 5.5 - best for everyday tasks'))
+  payg3pOptions.push(getClaudeModelOption('fable51', 'Fable 5.1', 'Fable 5.1 - Claude 5 class model'))
   payg3pOptions.push(getGpt54Option())
   payg3pOptions.push(getGpt53CodexOption())
   payg3pOptions.push(getGpt54MiniOption())
@@ -599,12 +629,18 @@ function getModelFamilyInfo(
 
   // Fable family (Claude 5 class, above Opus tier)
   if (canonical.includes('claude-fable-5')) {
-    return { alias: 'Fable', currentVersionName: 'Fable 5' }
+    return {
+      alias: 'Fable',
+      currentVersionName: getMarketingNameForModel(getDefaultFableModel()) ?? 'Fable 5.1',
+    }
   }
 
   // Mythos family (Claude 5 class, above Opus tier)
   if (canonical.includes('claude-mythos-5')) {
-    return { alias: 'Mythos', currentVersionName: 'Mythos 5' }
+    return {
+      alias: 'Mythos',
+      currentVersionName: getMarketingNameForModel(getDefaultMythosModel()) ?? 'Mythos 5.1',
+    }
   }
 
   return null

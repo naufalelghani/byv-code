@@ -14,6 +14,108 @@ export const CLAUDE_3_7_SONNET_CONFIG = {
   openai: 'claude-3-7-sonnet-20250219',
 } as const satisfies ModelConfig
 
+// @[MODEL LAUNCH]: Add a new CLAUDE_*_CONFIG constant here. Double check the correct model strings
+// here since the pattern may change.
+
+// Claude 3 Haiku (legacy)
+export const CLAUDE_3_HAIKU_CONFIG = {
+  firstParty: 'claude-3-haiku-20240307',
+  bedrock: 'anthropic.claude-3-haiku-20240307-v1:0',
+  vertex: 'claude-3-haiku@20240307',
+  foundry: 'claude-3-haiku',
+  openai: 'claude-3-haiku-20240307',
+} as const satisfies ModelConfig
+
+// Claude 5.5 Haiku — latest generation
+export const CLAUDE_HAIKU_5_5_CONFIG = {
+  firstParty: 'claude-haiku-5-5',
+  bedrock: 'anthropic.claude-haiku-5-5',
+  vertex: 'claude-haiku-5-5',
+  foundry: 'claude-haiku-5-5',
+  openai: 'claude-haiku-5-5-20251101',
+} as const satisfies ModelConfig
+
+// Claude 5.0 Sonnet
+export const CLAUDE_SONNET_5_CONFIG = {
+  firstParty: 'claude-sonnet-5',
+  bedrock: 'anthropic.claude-sonnet-5',
+  vertex: 'claude-sonnet-5',
+  foundry: 'claude-sonnet-5',
+  openai: 'claude-sonnet-5-20250622',
+} as const satisfies ModelConfig
+
+// Claude 5.5 Sonnet — latest generation
+export const CLAUDE_SONNET_5_5_CONFIG = {
+  firstParty: 'claude-sonnet-5-5',
+  bedrock: 'anthropic.claude-sonnet-5-5',
+  vertex: 'claude-sonnet-5-5',
+  foundry: 'claude-sonnet-5-5',
+  openai: 'claude-sonnet-5-5-20251101',
+} as const satisfies ModelConfig
+
+// Claude 3 Opus
+export const CLAUDE_3_OPUS_CONFIG = {
+  firstParty: 'claude-3-opus-20240229',
+  bedrock: 'anthropic.claude-3-opus-20240229-v1:0',
+  vertex: 'claude-3-opus@20240229',
+  foundry: 'claude-3-opus',
+  openai: 'claude-3-opus-20240229',
+} as const satisfies ModelConfig
+
+// Claude 4.7 Opus
+export const CLAUDE_OPUS_4_7_CONFIG = {
+  firstParty: 'claude-opus-4-7',
+  bedrock: 'anthropic.claude-opus-4-7',
+  vertex: 'claude-opus-4-7',
+  foundry: 'claude-opus-4-7',
+  openai: 'claude-opus-4-7-20250915',
+} as const satisfies ModelConfig
+
+// Claude 4.8 Opus
+export const CLAUDE_OPUS_4_8_CONFIG = {
+  firstParty: 'claude-opus-4-8',
+  bedrock: 'anthropic.claude-opus-4-8',
+  vertex: 'claude-opus-4-8',
+  foundry: 'claude-opus-4-8',
+  openai: 'claude-opus-4-8-20251015',
+} as const satisfies ModelConfig
+
+// Claude 5.0 Opus
+export const CLAUDE_OPUS_5_CONFIG = {
+  firstParty: 'claude-opus-5',
+  bedrock: 'anthropic.claude-opus-5',
+  vertex: 'claude-opus-5',
+  foundry: 'claude-opus-5',
+  openai: 'claude-opus-5-20250801',
+} as const satisfies ModelConfig
+
+// Claude 5.5 Opus — latest generation
+export const CLAUDE_OPUS_5_5_CONFIG = {
+  firstParty: 'claude-opus-5-5',
+  bedrock: 'anthropic.claude-opus-5-5',
+  vertex: 'claude-opus-5-5',
+  foundry: 'claude-opus-5-5',
+  openai: 'claude-opus-5-5-20251101',
+} as const satisfies ModelConfig
+
+// Claude 5.1 Fable
+export const CLAUDE_FABLE_5_1_CONFIG = {
+  firstParty: 'claude-fable-5-1',
+  bedrock: 'anthropic.claude-fable-5-1',
+  vertex: 'claude-fable-5-1',
+  foundry: 'claude-fable-5-1',
+  openai: 'claude-fable-5-1',
+} as const satisfies ModelConfig
+
+// Claude 5.1 Mythos
+export const CLAUDE_MYTHOS_5_1_CONFIG = {
+  firstParty: 'claude-mythos-5-1',
+  bedrock: 'anthropic.claude-mythos-5-1',
+  vertex: 'claude-mythos-5-1',
+  foundry: 'claude-mythos-5-1',
+  openai: 'claude-mythos-5-1',
+} as const satisfies ModelConfig
+
 export const CLAUDE_3_5_V2_SONNET_CONFIG = {
   firstParty: 'claude-3-5-sonnet-20241022',
   bedrock: 'anthropic.claude-3-5-sonnet-20241022-v2:0',
@@ -119,19 +221,48 @@ export const GPT_5_4_MINI_CONFIG = {
   openai: 'gpt-5.4-mini',
 } as const satisfies ModelConfig
 
+export const CLAUDE_FABLE_5_CONFIG = {
+  firstParty: 'claude-fable-5',
+  bedrock: 'anthropic.claude-fable-5',
+  vertex: 'claude-fable-5',
+  foundry: 'claude-fable-5',
+  openai: 'claude-fable-5',
+} as const satisfies ModelConfig
+
+export const CLAUDE_MYTHOS_5_CONFIG = {
+  firstParty: 'claude-mythos-5',
+  bedrock: 'anthropic.claude-mythos-5',
+  vertex: 'claude-mythos-5',
+  foundry: 'claude-mythos-5',
+  openai: 'claude-mythos-5',
+} as const satisfies ModelConfig
+
 // @[MODEL LAUNCH]: Register the new config here.
 export const ALL_MODEL_CONFIGS = {
   haiku35: CLAUDE_3_5_HAIKU_CONFIG,
+  haiku3: CLAUDE_3_HAIKU_CONFIG,
   haiku45: CLAUDE_HAIKU_4_5_CONFIG,
+  haiku55: CLAUDE_HAIKU_5_5_CONFIG,
   sonnet35: CLAUDE_3_5_V2_SONNET_CONFIG,
   sonnet37: CLAUDE_3_7_SONNET_CONFIG,
   sonnet40: CLAUDE_SONNET_4_CONFIG,
   sonnet45: CLAUDE_SONNET_4_5_CONFIG,
   sonnet46: CLAUDE_SONNET_4_6_CONFIG,
+  sonnet5: CLAUDE_SONNET_5_CONFIG,
+  sonnet55: CLAUDE_SONNET_5_5_CONFIG,
+  opus3: CLAUDE_3_OPUS_CONFIG,
   opus40: CLAUDE_OPUS_4_CONFIG,
   opus41: CLAUDE_OPUS_4_1_CONFIG,
   opus45: CLAUDE_OPUS_4_5_CONFIG,
   opus46: CLAUDE_OPUS_4_6_CONFIG,
+  opus47: CLAUDE_OPUS_4_7_CONFIG,
+  opus48: CLAUDE_OPUS_4_8_CONFIG,
+  opus5: CLAUDE_OPUS_5_CONFIG,
+  opus55: CLAUDE_OPUS_5_5_CONFIG,
+  fable5: CLAUDE_FABLE_5_CONFIG,
+  fable51: CLAUDE_FABLE_5_1_CONFIG,
+  mythos5: CLAUDE_MYTHOS_5_CONFIG,
+  mythos51: CLAUDE_MYTHOS_5_1_CONFIG,
   // OpenAI Codex models
   gpt54: GPT_5_4_CONFIG,
   gpt53codex: GPT_5_3_CODEX_CONFIG,
