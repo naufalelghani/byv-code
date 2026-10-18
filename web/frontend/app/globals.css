@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: ui-monospace, 'SFMonoRemix', monospace;
+    --bg-primary: #191919;
+    --bg-secondary: #252526;
+    --border-color: #373737;
+    --text-primary: #e4e4e7;
+    --text-secondary: #a1a1aa;
+    --accent-blue: #0894da;
+  }
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Hide scrollbar but keep functionality */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #373737;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #4a4a4a;
+}
