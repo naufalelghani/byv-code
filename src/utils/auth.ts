@@ -1767,6 +1767,10 @@ export function isProSubscriber(): boolean {
   return getSubscriptionType() === 'pro'
 }
 
+export function isInternalSubscriber(): boolean {
+  return getSubscriptionType() === 'internal'
+}
+
 export function getRateLimitTier(): string | null {
   if (!isAnthropicAuthEnabled()) {
     return null

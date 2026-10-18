@@ -86,6 +86,60 @@ export const COST_HAIKU_45 = {
   webSearchRequests: 0.01,
 } as const satisfies ModelCosts
 
+
+// Pricing tier for Claude 5 class models: $10 input / $50 output per Mtok
+export const COST_TIER_10_50 = {
+  inputTokens: 10,
+  outputTokens: 50,
+  promptCacheWriteTokens: 12.5,
+  promptCacheReadTokens: 1,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for Haiku 5.5: $1.25 input / $6.25 output per Mtok
+export const COST_HAIKU_55 = {
+  inputTokens: 1.25,
+  outputTokens: 6.25,
+  promptCacheWriteTokens: 1.5625,
+  promptCacheReadTokens: 0.125,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for Opus 5.5 (Claude 5 class): $10 input / $50 output per Mtok
+export const COST_OPUS_55 = {
+  inputTokens: 10,
+  outputTokens: 50,
+  promptCacheWriteTokens: 12.5,
+  promptCacheReadTokens: 1,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for Sonnet 5: $3 input / $15 output per Mtok
+export const COST_SONNET_5 = {
+  inputTokens: 3,
+  outputTokens: 15,
+  promptCacheWriteTokens: 3.75,
+  promptCacheReadTokens: 0.3,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for Sonnet 5.5: $3 input / $15 output per Mtok
+export const COST_SONNET_55 = {
+  inputTokens: 3,
+  outputTokens: 15,
+  promptCacheWriteTokens: 3.75,
+  promptCacheReadTokens: 0.3,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
+
+// Pricing for Fable 5.1 (Claude 5 class enhanced): $10 input / $50 output per Mtok
+export const COST_FABLE_51 = {
+  inputTokens: 10,
+  outputTokens: 50,
+  promptCacheWriteTokens: 12.5,
+  promptCacheReadTokens: 1,
+  webSearchRequests: 0.01,
+} as const satisfies ModelCosts
 const DEFAULT_UNKNOWN_MODEL_COST = COST_TIER_5_25
 
 /**
