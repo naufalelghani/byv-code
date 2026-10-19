@@ -1,11 +1,11 @@
 // GitHub OAuth flow for ConsoleOAuthFlow integration
 // This module provides GitHub Organization login support for Internal team members
 import { type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS, logEvent } from 'src/services/analytics/index.js'
-import { installOAuthTokens } from '../cli/handlers/auth.js'
-import { type OAuthStatus } from '../components/ConsoleOAuthFlow.js'
+import { installOAuthTokens } from '../../cli/handlers/auth.js'
+import { type OAuthStatus } from '../../components/ConsoleOAuthFlow.js'
 import { buildGitHubAuthUrl, githubOAuthExchangeCode } from './github-client.js'
-import { logError } from '../utils/log.js'
-import { logForDebugging } from '../utils/debug.js'
+import { logError } from '../../utils/log.js'
+import { logForDebugging } from '../../utils/debug.js'
 import { openBrowser } from '../../utils/browser.js'
 import crypto from 'crypto'
 

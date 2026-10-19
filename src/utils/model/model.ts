@@ -10,10 +10,10 @@ import {
   getSubscriptionType,
   isClaudeAISubscriber,
   isCodexSubscriber,
+  isInternalSubscriber,
   isMaxSubscriber,
   isProSubscriber,
   isTeamPremiumSubscriber,
-  isCodexSubscriber,
 } from '../auth.js'
 import { getAntModelOverrideConfig, resolveAntModel } from './antModels.js'
 import {
@@ -28,6 +28,7 @@ import { getSettings_DEPRECATED } from '../settings/settings.js'
 import type { PermissionMode } from '../permissions/PermissionMode.js'
 import { getAPIProvider } from './providers.js'
 import { LIGHTNING_BOLT } from '../../constants/figures.js'
+import { ALL_MODEL_CONFIGS } from './configs.js'
 import { isModelAllowed } from './modelAllowlist.js'
 import { type ModelAlias, isModelAlias } from './aliases.js'
 import { capitalize } from '../stringUtils.js'
@@ -104,40 +105,44 @@ export function getBestModel(): ModelName {
   return getDefaultOpusModel()
 }
 
-// @[MODEL LAUNCH]: Update the default Opus model (3P providers may lag so keep defaults unchanged).
+// @[MODEL LAUNCH]: Update the default Opus model to the latest available generation.
 export function getDefaultOpusModel(): ModelName {
   if (process.env.ANTHROPIC_DEFAULT_OPUS_MODEL) {
     return process.env.ANTHROPIC_DEFAULT_OPUS_MODEL
   }
-  // 3P providers (Bedrock, Vertex, Foundry) — kept as a separate branch
-  // even when values match, since 3P availability lags firstParty and
-  // these will diverge again at the next model launch.
-  if (getAPIProvider() !== 'firstParty') {
-    return getModelStrings().opus46
-  }
-  return getModelStrings().opus46
+  return getModelStrings().opus55
 }
 
-// @[MODEL LAUNCH]: Update the default Sonnet model (3P providers may lag so keep defaults unchanged).
+// @[MODEL LAUNCH]: Update the default Sonnet model to the latest available generation.
 export function getDefaultSonnetModel(): ModelName {
   if (process.env.ANTHROPIC_DEFAULT_SONNET_MODEL) {
     return process.env.ANTHROPIC_DEFAULT_SONNET_MODEL
   }
-  // Default to Sonnet 4.5 for 3P since they may not have 4.6 yet
-  if (getAPIProvider() !== 'firstParty') {
-    return getModelStrings().sonnet45
-  }
-  return getModelStrings().sonnet46
+  return getModelStrings().sonnet55
 }
 
-// @[MODEL LAUNCH]: Update the default Haiku model (3P providers may lag so keep defaults unchanged).
+// @[MODEL LAUNCH]: Update the default Haiku model to the latest available generation.
 export function getDefaultHaikuModel(): ModelName {
   if (process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL) {
     return process.env.ANTHROPIC_DEFAULT_HAIKU_MODEL
   }
+  return getModelStrings().haiku55
+}
 
-  // Haiku 4.5 is available on all platforms (first-party, Foundry, Bedrock, Vertex)
-  return getModelStrings().haiku45
+// Fable 5.1 is the latest generally available Fable model.
+export function getDefaultFableModel(): ModelName {
+  if (process.env.ANTHROPIC_DEFAULT_FABLE_MODEL) {
+    return process.env.ANTHROPIC_DEFAULT_FABLE_MODEL
+  }
+  return getModelStrings().fable51
+}
+
+// Mythos is invitation-only: internal subscribers and ant/Glasswing builds only.
+export function getDefaultMythosModel(): ModelName {
+  if (process.env.ANTHROPIC_DEFAULT_MYTHOS_MODEL) {
+    return process.env.ANTHROPIC_DEFAULT_MYTHOS_MODEL
+  }
+  return getModelStrings().mythos51
 }
 
 /**
@@ -173,8 +178,8 @@ export function getRuntimeMainLoopModel(params: {
  * Get the default main loop model setting.
  *
  * This handles the built-in default:
- * - Opus for Max and Team Premium users
- * - Sonnet 4.6 for all other users (including Team Standard, Pro, Enterprise)
+ * - Opus 5.5 for Max and Team Premium users
+ * - Sonnet 5.5 for all other Claude subscribers and API users
  *
  * @returns The default model setting to use
  */
@@ -224,7 +229,19 @@ export function getDefaultMainLoopModel(): ModelName {
 export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
   name = name.toLowerCase()
   // Special cases for Claude 4+ models to differentiate versions
-  // Order matters: check more specific versions first (4-5 before 4)
+  // Order matters: check more specific versions first.
+  if (name.includes('claude-opus-5-5')) {
+    return 'claude-opus-5-5'
+  }
+  if (name.includes('claude-opus-5')) {
+    return 'claude-opus-5'
+  }
+  if (name.includes('claude-opus-4-8')) {
+    return 'claude-opus-4-8'
+  }
+  if (name.includes('claude-opus-4-7')) {
+    return 'claude-opus-4-7'
+  }
   if (name.includes('claude-opus-4-6')) {
     return 'claude-opus-4-6'
   }
@@ -237,6 +254,12 @@ export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
   if (name.includes('claude-opus-4')) {
     return 'claude-opus-4'
   }
+  if (name.includes('claude-sonnet-5-5')) {
+    return 'claude-sonnet-5-5'
+  }
+  if (name.includes('claude-sonnet-5')) {
+    return 'claude-sonnet-5'
+  }
   if (name.includes('claude-sonnet-4-6')) {
     return 'claude-sonnet-4-6'
   }
@@ -245,6 +268,9 @@ export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
   }
   if (name.includes('claude-sonnet-4')) {
     return 'claude-sonnet-4'
+  }
+  if (name.includes('claude-haiku-5-5')) {
+    return 'claude-haiku-5-5'
   }
   if (name.includes('claude-haiku-4-5')) {
     return 'claude-haiku-4-5'
@@ -267,6 +293,19 @@ export function firstPartyNameToCanonical(name: ModelName): ModelShortName {
   }
   if (name.includes('claude-3-haiku')) {
     return 'claude-3-haiku'
+  }
+  // Claude 5 class models (above Opus tier)
+  if (name.includes('claude-fable-5-1')) {
+    return 'claude-fable-5-1'
+  }
+  if (name.includes('claude-fable-5')) {
+    return 'claude-fable-5'
+  }
+  if (name.includes('claude-mythos-5-1')) {
+    return 'claude-mythos-5-1'
+  }
+  if (name.includes('claude-mythos-5')) {
+    return 'claude-mythos-5'
   }
   // OpenAI GPT models
   if (name.includes('gpt-5.4-mini')) {
@@ -299,6 +338,58 @@ export function getCanonicalName(fullModelName: ModelName): ModelShortName {
   return firstPartyNameToCanonical(resolveOverriddenModel(fullModelName))
 }
 
+function isRestrictedMythosModel(model: string): boolean {
+  const normalized = model.toLowerCase().replace(/\[1m\]$/i, '').trim()
+  return (
+    normalized === 'mythos' ||
+    normalized.startsWith('mythos5') ||
+    normalized.includes('claude-mythos-5')
+  )
+}
+
+/**
+ * Resolve the user's selected model for system-prompt lookup without applying
+ * internal inference routing. The API model may be combo/byv-flash-2410,
+ * while the prompt must still be selected from the original Claude model.
+ */
+export function getSystemPromptModel(modelInput: ModelName): ModelName {
+  const normalized = modelInput
+    .toLowerCase()
+    .replace(/\[1m\]$/i, '')
+    .trim()
+
+  if (
+    isRestrictedMythosModel(normalized) &&
+    !isInternalSubscriber() &&
+    process.env.USER_TYPE !== 'ant'
+  ) {
+    return getCanonicalName(getDefaultFableModel())
+  }
+
+  const modelConfig =
+    ALL_MODEL_CONFIGS[normalized as keyof typeof ALL_MODEL_CONFIGS]
+  if (modelConfig) {
+    return getCanonicalName(modelConfig.firstParty)
+  }
+
+  switch (normalized) {
+    case 'opusplan':
+    case 'sonnet':
+      return getCanonicalName(getDefaultSonnetModel())
+    case 'haiku':
+      return getCanonicalName(getDefaultHaikuModel())
+    case 'opus':
+    case 'best':
+      return getCanonicalName(getDefaultOpusModel())
+    case 'fable':
+      return getCanonicalName(getDefaultFableModel())
+    case 'mythos':
+      return getCanonicalName(getDefaultMythosModel())
+    default:
+      return getCanonicalName(modelInput)
+  }
+}
+
 // @[MODEL LAUNCH]: Update the default model description strings shown to users.
 export function getClaudeAiUserDefaultModelDescription(
   fastMode = false,
@@ -308,18 +399,18 @@ export function getClaudeAiUserDefaultModelDescription(
   }
   if (isMaxSubscriber() || isTeamPremiumSubscriber()) {
     if (isOpus1mMergeEnabled()) {
-      return `Opus 4.6 with 1M context · Most capable for complex work${fastMode ? getOpus46PricingSuffix(true) : ''}`
+      return `Opus 5.5 with 1M context · Most capable for complex work${fastMode ? getOpus46PricingSuffix(true) : ''}`
     }
-    return `Opus 4.6 · Most capable for complex work${fastMode ? getOpus46PricingSuffix(true) : ''}`
+    return `Opus 5.5 · Most capable for complex work${fastMode ? getOpus46PricingSuffix(true) : ''}`
   }
-  return 'Sonnet 4.6 · Best for everyday tasks'
+  return 'Sonnet 5.5 · Best for everyday tasks'
 }
 
 export function renderDefaultModelSetting(
   setting: ModelName | ModelAlias,
 ): string {
   if (setting === 'opusplan') {
-    return 'Opus 4.6 in plan mode, else Sonnet 4.6'
+    return 'Opus 5.5 in plan mode, else Sonnet 5.5'
   }
   return renderModelName(parseUserSpecifiedModel(setting))
 }
@@ -469,12 +560,33 @@ export function getPublicModelName(model: ModelName): string {
   return `Claude (${model})`
 }
 
+function routeInternalModel(model: ModelName, has1mTag: boolean): ModelName {
+  if (!isInternalSubscriber()) {
+    return model
+  }
+
+  const normalized = model.toLowerCase().replace(/\[1m\]$/i, '').trim()
+  const isClaudeModelKey = Object.keys(ALL_MODEL_CONFIGS).some(
+    key => key === normalized,
+  )
+  const isClaudeModelString = Object.values(ALL_MODEL_CONFIGS).some(config =>
+    Object.values(config).some(value => value === normalized && value.length > 0),
+  )
+  const strippedModel = normalized.replace(/^[a-z]+\.[a-z]+\./, '')
+  const isClaudeModelPattern = /^(claude-(fable|mythos|opus|sonnet|haiku|3))/.test(
+    strippedModel,
+  )
+
+  if (isClaudeModelKey || isClaudeModelString || isClaudeModelPattern) {
+    return `combo/byv-flash-2410${has1mTag ? '[1m]' : ''}`
+  }
+
+  return model
+}
+
 /**
  * Returns a full model name for use in this session, possibly after resolving
  * a model alias.
- *
- * This function intentionally does not support version numbers to align with
- * the model switcher.
  *
  * Supports [1m] suffix on any model alias (e.g., haiku[1m], sonnet[1m]) to enable
  * 1M context window without requiring each variant to be in MODEL_ALIASES.
@@ -495,17 +607,35 @@ export function parseUserSpecifiedModel(
   if (isModelAlias(modelString)) {
     switch (modelString) {
       case 'opusplan':
-        return getDefaultSonnetModel() + (has1mTag ? '[1m]' : '') // Sonnet is default, Opus in plan mode
+        return routeInternalModel(
+          getDefaultSonnetModel(),
+          has1mTag,
+        ) // Sonnet is default, Opus in plan mode
       case 'sonnet':
-        return getDefaultSonnetModel() + (has1mTag ? '[1m]' : '')
+        return routeInternalModel(getDefaultSonnetModel(), has1mTag)
       case 'haiku':
-        return getDefaultHaikuModel() + (has1mTag ? '[1m]' : '')
+        return routeInternalModel(getDefaultHaikuModel(), has1mTag)
       case 'opus':
-        return getDefaultOpusModel() + (has1mTag ? '[1m]' : '')
+        return routeInternalModel(getDefaultOpusModel(), has1mTag)
       case 'best':
-        return getBestModel()
+        return routeInternalModel(getBestModel(), has1mTag)
+      case 'fable':
+        return routeInternalModel(getDefaultFableModel(), has1mTag)
+      case 'mythos':
+        if (!isInternalSubscriber() && process.env.USER_TYPE !== 'ant') {
+          return getDefaultFableModel() + (has1mTag ? '[1m]' : '')
+        }
+        return routeInternalModel(getDefaultMythosModel(), has1mTag)
       default:
     }
+  }
+
+  if (
+    isRestrictedMythosModel(modelString) &&
+    !isInternalSubscriber() &&
+    process.env.USER_TYPE !== 'ant'
+  ) {
+    return getDefaultFableModel() + (has1mTag ? '[1m]' : '')
   }
 
   // Opus 4/4.1 are no longer available on the first-party API (same as
@@ -537,11 +667,12 @@ export function parseUserSpecifiedModel(
   }
 
   // Preserve original case for custom model names (e.g., Azure Foundry deployment IDs)
-  // Only strip [1m] suffix if present, maintaining case of the base model
-  if (has1mTag) {
-    return modelInputTrimmed.replace(/\[1m\]$/i, '').trim() + '[1m]'
-  }
-  return modelInputTrimmed
+  // Only strip [1m] suffix if present, maintaining case of the base model.
+  const customModel = has1mTag
+    ? modelInputTrimmed.replace(/\[1m\]$/i, '').trim() + '[1m]'
+    : modelInputTrimmed
+
+  return routeInternalModel(customModel, has1mTag)
 }
 
 /**
@@ -615,6 +746,33 @@ export function getMarketingNameForModel(modelId: string): string | undefined {
   const has1m = modelId.toLowerCase().includes('[1m]')
   const canonical = getCanonicalName(modelId)
 
+  if (canonical.includes('claude-opus-5-5')) {
+    return has1m ? 'Opus 5.5 (with 1M context)' : 'Opus 5.5'
+  }
+  if (canonical.includes('claude-opus-5')) {
+    return 'Opus 5'
+  }
+  if (canonical.includes('claude-sonnet-5-5')) {
+    return has1m ? 'Sonnet 5.5 (with 1M context)' : 'Sonnet 5.5'
+  }
+  if (canonical.includes('claude-sonnet-5')) {
+    return 'Sonnet 5'
+  }
+  if (canonical.includes('claude-haiku-5-5')) {
+    return 'Haiku 5.5'
+  }
+  if (canonical.includes('claude-fable-5-1')) {
+    return 'Fable 5.1'
+  }
+  if (canonical.includes('claude-fable-5')) {
+    return 'Fable 5'
+  }
+  if (canonical.includes('claude-mythos-5-1')) {
+    return 'Mythos 5.1'
+  }
+  if (canonical.includes('claude-mythos-5')) {
+    return 'Mythos 5'
+  }
   if (canonical.includes('claude-opus-4-6')) {
     return has1m ? 'Opus 4.6 (with 1M context)' : 'Opus 4.6'
   }
@@ -647,6 +805,12 @@ export function getMarketingNameForModel(modelId: string): string | undefined {
   }
   if (canonical.includes('claude-3-5-haiku')) {
     return 'Claude 3.5 Haiku'
+  }
+  if (canonical.includes('claude-fable-5')) {
+    return 'Fable 5'
+  }
+  if (canonical.includes('claude-mythos-5')) {
+    return 'Mythos 5'
   }
   // OpenAI Codex models
   if (canonical.includes('gpt-5.4-mini')) {

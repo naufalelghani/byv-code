@@ -1,0 +1,30 @@
+{
+  "name": "byv-code-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web frontend for byv-code — React + Next.js App Router + Tailwind CSS. Mirrors the Claude Code CLI into a browser-native UI.",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "next": "^15.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "@types/react": "^19.0.0",
+    "@types/node": "^20.0.0",
+    "tailwindcss": "^3.4.0",
+    "postcss": "^8.4.0",
+    "autoprefixer": "^10.4.0",
+    "@tailwindcss/typography": "^0.5.0",
+    "eslint": "^9.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0"
+  }
+}
