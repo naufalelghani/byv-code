@@ -10,6 +10,8 @@ export interface ArticleMeta {
   createdAt: string
   updatedAt: string
   status: 'active' | 'draft' | 'published'
+  model?: string
+  timestamp?: string
 }
 
 export interface Article {

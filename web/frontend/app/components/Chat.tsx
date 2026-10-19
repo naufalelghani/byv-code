@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import type { Message } from '@/app/page'
-import { ThinkingIndicator } from '@/app/components/ThinkingIndicator'
-import { WebSearchToggle } from '@/app/search/WebSearchToggle'
+import type { Message } from '../page'
+import { ThinkingIndicator } from './ThinkingIndicator'
+import { WebSearchToggle } from '../search/WebSearchToggle'
 
 type ChatProps = {
   messages: Message[]
@@ -32,7 +32,7 @@ export function Chat({
 }: ChatProps) {
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
-  const [thinking, setThinking] = useState(false) // Fase B: thinking progress indicator
+  const [isThinkingIndicator, setIsThinkingIndicator] = useState(false) // Fase B: thinking progress indicator
   const [effort, setEffort] = useState<EffortLevel>('medium')
   const [webSearch, setWebSearch] = useState(false)
   const [mcpEnabled, setMcpEnabled] = useState(false)
@@ -105,11 +105,11 @@ export function Chat({
 
               // Fase B: thinking progress indicator (not raw reasoning)
               if (data.type === 'thinking_started') {
-                setThinking(true)
+                setIsThinkingIndicator(true)
                 continue
               }
               if (data.type === 'thinking_stopped') {
-                setThinking(false)
+                setIsThinkingIndicator(false)
                 continue
               }
 
@@ -146,7 +146,7 @@ export function Chat({
 
   return (
     <>
-      {thinking && <ThinkingIndicator thinking={thinking} />}
+      {isThinkingIndicator && <ThinkingIndicator thinking={isThinkingIndicator} />}
       {/* Message list */}
       <div className="flex-1 overflow-y-auto px-4 py-6 space-y-4">
         {messages.length === 0 ? (

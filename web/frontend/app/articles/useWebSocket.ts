@@ -29,7 +29,7 @@ export function useWebSocket(url: string) {
     }
     ws.onerror = () => setStatus('error')
 
-    const handleMessage: WebSocket.addEventListener = (event: MessageEvent) => {
+    const handleMessage = (event: MessageEvent) => {
       try {
         const data = JSON.parse(event.data) as ArticleEvent
         void data // placeholder — in full impl, emit to callback

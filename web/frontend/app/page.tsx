@@ -1,11 +1,11 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Chat } from '@/components/Chat'
-import { ModelPicker } from '@/components/ModelPicker'
-import { ThinkingToggle } from '@/components/ThinkingToggle'
-import { ArticleList } from '@/app/articles/ArticleList'
-import { useAuth } from '@/hooks/useAuth'
+import { Chat } from './components/Chat'
+import { ModelPicker } from './components/ModelPicker'
+import { ThinkingToggle } from './components/ThinkingToggle'
+import { ArticleList } from './articles/ArticleList'
+import { useAuth } from './hooks/useAuth'
 
 export type ModelOption = {
   value: string | null
@@ -74,7 +74,7 @@ export default function ChatPage() {
       {/* TODO(human): Consider adding article creation button + empty state styling */}
       <div className="hidden md:flex md:flex-col md:w-64 md:border-r md:border-claude-border">
         <ArticleList
-          onArticleSelect={() => {}}
+          onArticleSelect={() => { }}
           activeArticleId={undefined}
         />
       </div>
