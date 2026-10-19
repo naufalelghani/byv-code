@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import type { ModelOption } from '../page'
+import type { ModelOption } from '@/app/page'
 
 type ModelPickerProps = {
   value: string | null

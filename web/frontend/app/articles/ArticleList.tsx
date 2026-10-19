@@ -6,8 +6,8 @@
  */
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useWebSocket } from './useWebSocket'
+import { useEffect } from 'react'
+import { useWebSocket } from '@/app/articles/useWebSocket'
 
 export interface Article {
   id: string
@@ -23,14 +23,17 @@ interface ArticleListProps {
 }
 
 export function ArticleList({ onArticleSelect, activeArticleId }: ArticleListProps) {
-  const [articles, setArticles] = useState<Article[]>([])
+  const { articles, connected } = useWebSocket()
 
-  // Determine WebSocket URL — falls back to current origin with backend port
-  const wsOrigin = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
-  const wsUrl = `${wsOrigin.replace(/^http/, 'ws')}/ws/articles`
-
-  const { status: wsStatus } = useWebSocket(wsUrl)
-  const connected = wsStatus === 'connected'
+  if (!articles) {
+    return (
+      <div className="w-64 border-r border-claude-border bg-claude-bg-secondary p-4 overflow-y-auto">
+        <div className="text-center py-8 text-claude-text-secondary">
+          <p className="text-xs">No articles yet</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="w-64 border-r border-claude-border bg-claude-bg-secondary p-3 overflow-y-auto">
@@ -66,11 +69,6 @@ export function ArticleList({ onArticleSelect, activeArticleId }: ArticleListPro
             </div>
           </button>
         ))}
-        {articles.length === 0 && (
-          <p className="text-center py-8 text-claude-text-secondary">
-            No articles yet
-          </p>
-        )}
       </div>
     </div>
   )

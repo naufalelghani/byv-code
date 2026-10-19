@@ -35,8 +35,8 @@ export function useMcp(): UseMcpReturn {
     try {
       const res = await fetch('/api/mcp/servers')
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const body = await res.json() as { servers: McpServer[] }
-      setServers(body.servers ?? [])
+      const data = await res.json() as McpServer[]
+      setServers(data)
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to load servers')
     } finally {

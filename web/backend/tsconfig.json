@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
+    "moduleResolution": "bundler",
+    "module": "esnext",
+    "target": "es2022",
+    "moduleDirectories": ["node_modules", "../../"],
+    "paths": {
+      "src/*": ["../../src/*"]
+    },
+    "lib": ["ESNext"],
+    "types": ["bun"],
+    "allowJs": true,
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    "strict": false,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": "."
+  },
+  "include": ["**/*.ts", "**/*.tsx", "../../src/**/*.ts", "../../src/**/*.tsx"],
+  "exclude": ["node_modules", "dist"]
+}

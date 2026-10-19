@@ -24,7 +24,7 @@ export default function ArticleView({ article }: ArticleViewProps) {
       <div className="border-b border-claude-border p-3 bg-claude-bg-secondary">
         <h2 className="text-sm font-medium text-claude-text">{article.title}</h2>
         <p className="text-xs text-claude-text-secondary mt-1">
-          {article.meta.model || 'Default'} • {new Date(article.meta.timestamp || article.meta.createdAt).toLocaleString()}
+          {article.model} • {new Date(article.timestamp).toLocaleString()}
         </p>
       </div>
       <div className="flex-1 overflow-auto">
